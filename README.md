@@ -2,19 +2,20 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
+1. Copy `.env.local.example` to your own file named `.env.local`.
+2. Run `npm install`
+
+Then populate the environment variables from Joel.
+
 First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+In a separate terminal instance, run `npx novu-labs@latest echo`
+
+Open [http://localhost:2022](http://localhost:2022) with your browser to see the result, and follow Echo instructions.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
