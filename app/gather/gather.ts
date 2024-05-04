@@ -1,10 +1,15 @@
 import { Game, Player } from "@gathertown/gather-game-client";
+import { isInBar, isInKitchenette } from "./locations";
+import { generateImage } from "../img-gen/limewire";
 
 const GATHER_API_KEY: string = process.env.GATHER_API_KEY || "";
 const GATHER_SPACE_ID: string = process.env.GATHER_SPACE_ID || "";
 
 export interface InitGatherOptions {
-  onCoffeeTime?: () => void | PromiseLike<void>;
+  onCoffeeTime?: (payload: {
+    players: Player[];
+    imageUrl: string;
+  }) => void | PromiseLike<void>;
 }
 
 export const initGather = ({ onCoffeeTime }: InitGatherOptions = {}) => {
@@ -38,17 +43,37 @@ export const initGather = ({ onCoffeeTime }: InitGatherOptions = {}) => {
     if (!data?.playerSetsEmoteV2?.emote || !_context.player) {
       return;
     }
-    // console.log({ data, context: _context });
 
     const {
       playerSetsEmoteV2: { emote },
     } = data;
 
-    if (isCoffeeEmote(emote) && isInKitchenette(_context.player)) {
+    if (
+      isCoffeeEmote(emote) &&
+      (isInBar(_context.player) || isInKitchenette(_context.player))
+    ) {
       console.log("It's coffee time!");
 
+      const playersInLocation = game
+        .getPlayersInMap(_context.player.map ?? "")
+        .filter((player) => isInBar(player));
+
+      // maybe we can include something else from the Player object in the prompt/msg
+
+      // generate an image of people enjoying coffee
+      const prompt =
+        "A group of people enjoying a coffee in a kitchenette. Pixel art style.";
+      // const imageUrl = await generateImage(prompt);
+
+      // image URL for testing so we don't hit the API limit (10/day
+      const testImageUrl =
+        "https://www.shutterstock.com/image-vector/coffee-cup-pixel-art-mug-260nw-1887694882.jpg";
+
       // trigger echo!
-      await onCoffeeTime?.();
+      await onCoffeeTime?.({
+        players: playersInLocation,
+        imageUrl: testImageUrl,
+      });
     }
   });
 
@@ -71,30 +96,6 @@ export const initGather = ({ onCoffeeTime }: InitGatherOptions = {}) => {
     console.log(data);
   });
 };
-
-/** Kitchenette boundaries */
-const MIN_X = 18;
-const MAX_X = 22;
-const MIN_Y = 12;
-const MAX_Y = 15;
-function isInKitchenette({
-  x,
-  y,
-  map,
-}: Partial<Pick<Player, "map" | "x" | "y">>): boolean {
-  if (!map || !x || !y) {
-    return false;
-  }
-
-  //   console.log({ x, y, map });
-  return (
-    map === "office-main" &&
-    x >= MIN_X &&
-    y >= MIN_Y &&
-    x <= MAX_X &&
-    y <= MAX_Y
-  );
-}
 
 function isCoffeeEmote(emote?: string): boolean {
   return ["☕"].includes(emote ?? "");
