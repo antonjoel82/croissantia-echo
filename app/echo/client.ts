@@ -15,13 +15,24 @@ const novu = new Novu(process.env.NOVU_API_KEY as string);
 echo.workflow(
   "my-workflow",
   async ({ step, payload }) => {
+
+    const digestData = await step.digest('digest-step',
+        async () => {
+      return {
+        unit: 'seconds',
+        amount: 30
+      }
+    });
+
     await step.chat(
       "send-slack-msg",
       async () => {
         return {
           body: `
           It's coffee time! ☕️ Join us in the kitchenette!
+          ${digestData.events.length > 1 ? `This is the ${digestData.events.length} reminder, join us for coffee!!
           
+          ` : ''}
 People already here: ${payload.playerNames.join(", ")}
           `,
         };
