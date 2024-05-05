@@ -15,38 +15,72 @@ const novu = new Novu(process.env.NOVU_API_KEY as string);
 echo.workflow(
   "my-workflow",
   async ({ step, payload }) => {
-    await step.email(
-      "send-email",
-      async (inputs) => {
+
+    const digestData = await step.digest('digest-step',
+        async () => {
+      return {
+        unit: 'seconds',
+        amount: 30
+      }
+    });
+
+    await step.chat(
+      "send-slack-msg",
+      async () => {
         return {
-          subject: "This is an email subject",
-          body: "E-mail body of hello " + inputs.world,
+          body: `
+          It's coffee time! ☕️ Join us in the kitchenette!
+          ${digestData.events.length > 1 ? `This is the ${digestData.events.length} reminder, join us for coffee!!
+          
+          ` : ''}
+People already here: ${payload.playerNames.join(", ")}
+          `,
         };
       },
       {
-        inputSchema: {
-          type: "object",
-          properties: { world: { type: "string", default: "World" } },
+        // I can't get this to work, seems to be ignored - only the step above is executed
+        // @see https://docs.novu.co/echo/concepts/steps#channel-steps-interface
+        providers: {
+          slack: async ({ inputs, outputs }) => ({
+            blocks: [
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: outputs.body + "test" },
+              },
+              {
+                type: "image",
+                image_url: payload.imageUrl,
+                alt_text: "coffee",
+              },
+            ],
+            webhookUrl: process.env.SLACK_WEBHOOK_URL,
+          }),
         },
       }
     );
   },
-  { payloadSchema: { type: "object", properties: {} } }
+  {
+    payloadSchema: {
+      type: "object",
+      properties: {
+        playerNames: { type: "array", items: { type: "string" }, default: [] },
+        imageUrl: { type: "string" },
+      },
+    },
+  }
 );
 
 initGather({
-  onCoffeeTime: async () => {
+  onCoffeeTime: async (payload) => {
     const resp = await novu.trigger("my-workflow", {
       // Change this with your own target
       to: {
-        subscriberId: "joelTest",
-        email: "joel@novu.co",
-        firstName: "Joel",
-        lastName: "Test",
+        subscriberId: "6634cb0e83064b959c81b912",
       },
-      payload: { world: "Coffee!" },
+      payload: {
+        playerNames: payload.players.map((player) => player.name),
+        imageUrl: payload.imageUrl,
+      },
     });
-
-    console.log(resp);
   },
 });
