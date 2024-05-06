@@ -60,7 +60,6 @@ People already here: ${payload.playerNames.join(", ")}
                 alt_text: "coffee",
               },
             ],
-            webhookUrl: process.env.SLACK_WEBHOOK_URL,
           }),
         },
       }
