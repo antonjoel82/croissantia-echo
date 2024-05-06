@@ -15,13 +15,11 @@ const novu = new Novu(process.env.NOVU_API_KEY as string);
 echo.workflow(
   "my-workflow",
   async ({ step, payload }) => {
-
-    const digestData = await step.digest('digest-step',
-        async () => {
+    const digestData = await step.digest("digest-step", async () => {
       return {
-        unit: 'seconds',
-        amount: 30
-      }
+        unit: "seconds",
+        amount: 10,
+      };
     });
 
     await step.chat(
@@ -30,22 +28,31 @@ echo.workflow(
         return {
           body: `
           It's coffee time! ☕️ Join us in the kitchenette!
-          ${digestData.events.length > 1 ? `This is the ${digestData.events.length} reminder, join us for coffee!!
+          ${
+            digestData.events.length > 1
+              ? `This is the ${digestData.events.length} reminder, join us for coffee!!
           
-          ` : ''}
+          `
+              : ""
+          }
 People already here: ${payload.playerNames.join(", ")}
           `,
         };
       },
       {
-        // I can't get this to work, seems to be ignored - only the step above is executed
-        // @see https://docs.novu.co/echo/concepts/steps#channel-steps-interface
         providers: {
           slack: async ({ inputs, outputs }) => ({
+            text: "It's coffee time! ☕️",
             blocks: [
               {
                 type: "section",
-                text: { type: "mrkdwn", text: outputs.body + "test" },
+                text: {
+                  type: "mrkdwn",
+                  text: `It's coffee time! ☕️ Join us in the kitchenette!  
+
+People already here: ${payload.playerNames.join(", ")}
+                `,
+                },
               },
               {
                 type: "image",
