@@ -15,6 +15,8 @@ const novu = new Novu(process.env.NOVU_API_KEY as string);
 echo.workflow(
   "my-workflow",
   async ({ step, payload }) => {
+    console.log("Payload", payload);
+
     const digestData = await step.digest("digest-step", async () => {
       return {
         unit: "seconds",

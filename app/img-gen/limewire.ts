@@ -1,4 +1,5 @@
 export async function generateImage(prompt: string): Promise<string> {
+  console.log({ prompt });
   const resp = await fetch(`https://api.limewire.com/api/image/generation`, {
     method: "POST",
     headers: {
@@ -14,5 +15,8 @@ export async function generateImage(prompt: string): Promise<string> {
   });
 
   const data = await resp.json();
-  return data[0]?.asset_url;
+
+  console.log("Limewire response", JSON.stringify(data, null, 2));
+
+  return data.data[0]?.asset_url;
 }

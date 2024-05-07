@@ -26,7 +26,7 @@ export const initGather = ({ onCoffeeTime }: InitGatherOptions = {}) => {
    * encId maps to a specific person.
    */
   game.subscribeToEvent("playerJoins", (data, _context) => {
-    console.log(data);
+    // console.log(data);
   });
 
   /**
@@ -61,18 +61,24 @@ export const initGather = ({ onCoffeeTime }: InitGatherOptions = {}) => {
       // maybe we can include something else from the Player object in the prompt/msg
 
       // generate an image of people enjoying coffee
-      const prompt =
-        "A group of people enjoying a coffee in a kitchenette. Pixel art style.";
-      // const imageUrl = await generateImage(prompt);
+      const prompt = `A group of ${
+        playersInLocation.length
+      } (${playersInLocation
+        .map(({ name }) => name)
+        .join(
+          ", "
+        )}) people enjoying a coffee in a kitchenette. Pixel art style, vaporwave aesthetic`;
+      const imageUrl = await generateImage(prompt);
+
+      console.log("imageUrl", `<<<${imageUrl}>>>`);
 
       // image URL for testing so we don't hit the API limit (10/day
-      const testImageUrl =
-        "https://www.shutterstock.com/image-vector/coffee-cup-pixel-art-mug-260nw-1887694882.jpg";
+      // const imageUrl = "https://www.shutterstock.com/image-vector/coffee-cup-pixel-art-mug-260nw-1887694882.jpg";
 
       // trigger echo!
       await onCoffeeTime?.({
         players: playersInLocation,
-        imageUrl: testImageUrl,
+        imageUrl,
       });
     }
   });
