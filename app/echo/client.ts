@@ -81,7 +81,7 @@ initGather({
     const resp = await novu.trigger("my-workflow", {
       // Change this with your own target
       to: {
-        subscriberId: "6634cb0e83064b959c81b912",
+        subscriberId: process.env.NOVU_SUBSCRIBER_ID ?? "joelTest",
       },
       payload: {
         playerNames: payload.players.map((player) => player.name),
