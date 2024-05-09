@@ -22,8 +22,8 @@ function isInBoundary(
 const kitchenetteBoundary: Boundary = {
   minX: 18,
   maxX: 22,
-  minY: 12,
-  maxY: 15,
+  minY: 19,
+  maxY: 22,
 };
 
 const barBoundary: Boundary = {

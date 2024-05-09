@@ -5,6 +5,15 @@ import { generateImage } from "../img-gen/limewire";
 const GATHER_API_KEY: string = process.env.GATHER_API_KEY || "";
 const GATHER_SPACE_ID: string = process.env.GATHER_SPACE_ID || "";
 
+const ART_STYLES: string[] = [
+  "sad lonely painting",
+  "pixel art",
+  "hyper realistic photo",
+  "childish cartoon",
+  "abstract painting",
+  "construction paper art",
+];
+
 export interface InitGatherOptions {
   onCoffeeTime?: (payload: {
     players: Player[];
@@ -32,9 +41,9 @@ export const initGather = ({ onCoffeeTime }: InitGatherOptions = {}) => {
   /**
    * This one is noisy! Occurs for every step of every player
    */
-  //   game.subscribeToEvent("playerMoves", (data, _context) => {
-  //       console.log(data);
-  //   });
+  game.subscribeToEvent("playerMoves", (data, _context) => {
+    console.log(data);
+  });
 
   /**
    * triggers when a person emotes!
@@ -48,26 +57,37 @@ export const initGather = ({ onCoffeeTime }: InitGatherOptions = {}) => {
       playerSetsEmoteV2: { emote },
     } = data;
 
-    if (
-      isCoffeeEmote(emote) &&
-      (isInBar(_context.player) || isInKitchenette(_context.player))
-    ) {
-      console.log("It's coffee time!");
+    if (isCoffeeEmote(emote)) {
+      let playersInLocation: Player[] = [];
+      let mapLocation: string = "";
+      if (isInBar(_context.player)) {
+        console.log("It's coffee time in the Bar!");
+        mapLocation = "Bar";
 
-      const playersInLocation = game
-        .getPlayersInMap(_context.player.map ?? "")
-        .filter((player) => isInBar(player));
+        playersInLocation = game
+          .getPlayersInMap(_context.player.map ?? "")
+          .filter((player) => isInBar(player));
+      }
+
+      if (isInKitchenette(_context.player)) {
+        console.log("It's coffee time in the Kitchenette!");
+        mapLocation = "Kitchenette";
+
+        playersInLocation = game
+          .getPlayersInMap(_context.player.map ?? "")
+          .filter((player) => isInKitchenette(player));
+      }
 
       // maybe we can include something else from the Player object in the prompt/msg
 
-      // generate an image of people enjoying coffee
-      const prompt = `A group of ${
-        playersInLocation.length
-      } (${playersInLocation
+      const numPlayers = playersInLocation.length || 1;
+      const playerNamesStr = playersInLocation
         .map(({ name }) => name)
-        .join(
-          ", "
-        )}) people enjoying a coffee in a kitchenette. Pixel art style, vaporwave aesthetic`;
+        .join(", ");
+      const artStyle = ART_STYLES[ART_STYLES.length % numPlayers];
+
+      // generate an image of people enjoying coffee
+      const prompt = `A group of ${numPlayers} people (${playerNamesStr}) enjoying a coffee in a ${mapLocation}. ${artStyle} style, vaporwave aesthetic`;
       const imageUrl = await generateImage(prompt);
 
       console.log("imageUrl", `<<<${imageUrl}>>>`);
